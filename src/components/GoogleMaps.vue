@@ -27,7 +27,9 @@
   import axios from 'axios'
 
   Vue.use(VueGoogleMaps, {
-    load: {}
+    load: {
+      key: 'AIzaSyAV-l5jESvA5UUfg8qFvwxIuG86akYWhMY'
+    }
   })
 
   export default {
