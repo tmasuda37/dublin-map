@@ -4,8 +4,9 @@
       :zoom="15"
     >
     <gmap-info-window :options="infoOptions" :position="infoWindowPos" :opened="infoWinOpen" @closeclick="infoWinOpen=false">
-      <h5>{{stationName}}</h5>
-      <h4>{{availableBikes}}&nbsp;/&nbsp;{{bikeStands}}</h4>
+      <h1>{{stationName}}</h1>
+      <h2>Available Bikes:&nbsp;{{availableBikes}}</h2>
+      <h2>Available Docks:&nbsp;{{availableDocks}}</h2>
       Last Update: {{updatedTime}}
     </gmap-info-window>
     <gmap-marker
@@ -13,7 +14,7 @@
       v-for="(m, index) in markers"
       :position="m.position"
       :clickable="true"
-      :label="m.stopid"
+      :label="m.label"
       @click="toggleInfoWindow(m,index)"
     >
     </gmap-marker>
@@ -38,8 +39,9 @@
         markers: [],
         infoContent: '',
         stationName: '',
+        label: '',
         availableBikes: '',
-        bikeStands: '',
+        availableDocks: '',
         updatedTime: '',
         infoWindowPos: {
           lat: 0,
@@ -71,7 +73,7 @@
 
         this.stationName = marker.name
         this.availableBikes = marker.available_bikes
-        this.bikeStands = marker.bike_stands
+        this.availableDocks = marker.bike_stands
         this.updatedTime = moment(marker.last_update).format('YYYY/MM/DD HH:mm')
 
         // check if its the same marker that was selected if yes toggle
@@ -88,6 +90,7 @@
     mounted () {
       this.fetchData().then(items => {
         items.forEach(item => {
+          item.label = `${item.available_bikes}/${item.bike_stands}`
           this.markers.push(item)
         })
       })
