@@ -3,12 +3,18 @@
         :center="{lat: 53.3498, lng: -6.2603}"
         :zoom="12"
     >
+
+    <gmap-info-window :options="infoOptions" :position="infoWindowPos" :opened="infoWinOpen" @closeclick="infoWinOpen=false">
+      {{infoContent}}
+    </gmap-info-window>
+
     <gmap-marker
           :key="index"
           v-for="(m, index) in markers"
           :position="m.position"
-                :clickable="true"
-                @click="center=m.position"
+          :clickable="true"
+          :label="m.stopid"
+          @click="toggleInfoWindow(m,index)"
         >
         </gmap-marker>
     </gmap-map>
@@ -28,7 +34,19 @@
   export default {
     data () {
       return {
-        markers: []
+        markers: [],
+        infoContent: '',
+        infoWindowPos: {
+          lat: 0,
+          lng: 0
+        },
+        infoWinOpen: false,
+        infoOptions: {
+          pixelOffset: {
+            width: 0,
+            height: -35
+          }
+        }
       }
     },
 
@@ -44,6 +62,21 @@
             return stop
           })
         })
+      },
+
+      toggleInfoWindow: function (marker, idx) {
+        console.log('call toggleInfoWindow()')
+        this.infoWindowPos = marker.position
+        this.infoContent = `<b>${marker.stopid}: ${marker.fullname}</b>`
+
+        // check if its the same marker that was selected if yes toggle
+        if (this.currentMidx === idx) {
+          this.infoWinOpen = !this.infoWinOpen
+        } else {
+          // if different marker set infowindow to open and reset current marker index
+          this.infoWinOpen = true
+          this.currentMidx = idx
+        }
       }
     },
 
