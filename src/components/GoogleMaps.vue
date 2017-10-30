@@ -1,34 +1,34 @@
 <template>
     <gmap-map style="width: 100%; height: 100%; position: absolute; left:0; top:0"
-        :center="{lat: 53.3498, lng: -6.2603}"
-        :zoom="12"
-    >
+      :center="{lat: 53.3498, lng: -6.2603}"
+      :zoom="15"
+  >
+  <gmap-info-window :options="infoOptions" :position="infoWindowPos" :opened="infoWinOpen" @closeclick="infoWinOpen=false">
+    <h5>{{stationName}}</h5>
+    <h4>{{availableBikes}}&nbsp;/&nbsp;{{bikeStands}}</h4>
+    Last Update: {{updatedTime}}
+  </gmap-info-window>
 
-    <gmap-info-window :options="infoOptions" :position="infoWindowPos" :opened="infoWinOpen" @closeclick="infoWinOpen=false">
-      {{infoContent}}
-    </gmap-info-window>
-
-    <gmap-marker
-          :key="index"
-          v-for="(m, index) in markers"
-          :position="m.position"
-          :clickable="true"
-          :label="m.stopid"
-          @click="toggleInfoWindow(m,index)"
-        >
-        </gmap-marker>
-    </gmap-map>
+  <gmap-marker
+        :key="index"
+        v-for="(m, index) in markers"
+        :position="m.position"
+        :clickable="true"
+        :label="m.stopid"
+        @click="toggleInfoWindow(m,index)"
+      >
+      </gmap-marker>
+  </gmap-map>
 </template>
 
 <script>
+  import Vue from 'vue'
+  import moment from 'moment'
+  import * as VueGoogleMaps from 'vue2-google-maps'
   import axios from 'axios'
 
-  import * as VueGoogleMaps from 'vue2-google-maps'
-  import Vue from 'vue'
-
   Vue.use(VueGoogleMaps, {
-    load: {
-    }
+    load: {}
   })
 
   export default {
@@ -36,6 +36,10 @@
       return {
         markers: [],
         infoContent: '',
+        stationName: '',
+        availableBikes: '',
+        bikeStands: '',
+        updatedTime: '',
         infoWindowPos: {
           lat: 0,
           lng: 0
@@ -51,23 +55,25 @@
     },
 
     methods: {
-      getBusStops () {
-        console.log('call getBusStops()')
-        return axios.get('https://data.dublinked.ie/cgi-bin/rtpi/routeinformation?routeid=46a&operator=bac&format=json').then(function (res) {
-          return res.data.results[0].stops.map(stop => {
-            stop.position = {
-              lat: parseFloat(stop.latitude),
-              lng: parseFloat(stop.longitude)
-            }
-            return stop
+      fetchData () {
+        console.log('call fetchData()')
+        return axios
+          .get(
+            'https://api.jcdecaux.com/vls/v1/stations?contract=dublin&apiKey=eff457322380d25ccf635405ab615dd7df934db2'
+          )
+          .then(function (res) {
+            return res.data
           })
-        })
       },
 
       toggleInfoWindow: function (marker, idx) {
         console.log('call toggleInfoWindow()')
         this.infoWindowPos = marker.position
-        this.infoContent = `<b>${marker.stopid}: ${marker.fullname}</b>`
+
+        this.stationName = marker.name
+        this.availableBikes = marker.available_bikes
+        this.bikeStands = marker.bike_stands
+        this.updatedTime = moment(marker.last_update).format('YYYY/MM/DD HH:mm')
 
         // check if its the same marker that was selected if yes toggle
         if (this.currentMidx === idx) {
@@ -81,10 +87,9 @@
     },
 
     mounted () {
-      this.getBusStops().then(allStops => {
-        allStops.forEach(stop => {
-          console.log(stop)
-          this.markers.push(stop)
+      this.fetchData().then(items => {
+        items.forEach(item => {
+          this.markers.push(item)
         })
       })
     }
