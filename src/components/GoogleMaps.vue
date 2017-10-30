@@ -2,22 +2,21 @@
     <gmap-map style="width: 100%; height: 100%; position: absolute; left:0; top:0"
       :center="{lat: 53.3498, lng: -6.2603}"
       :zoom="15"
-  >
-  <gmap-info-window :options="infoOptions" :position="infoWindowPos" :opened="infoWinOpen" @closeclick="infoWinOpen=false">
-    <h5>{{stationName}}</h5>
-    <h4>{{availableBikes}}&nbsp;/&nbsp;{{bikeStands}}</h4>
-    Last Update: {{updatedTime}}
-  </gmap-info-window>
-
-  <gmap-marker
-        :key="index"
-        v-for="(m, index) in markers"
-        :position="m.position"
-        :clickable="true"
-        :label="m.stopid"
-        @click="toggleInfoWindow(m,index)"
-      >
-      </gmap-marker>
+    >
+    <gmap-info-window :options="infoOptions" :position="infoWindowPos" :opened="infoWinOpen" @closeclick="infoWinOpen=false">
+      <h5>{{stationName}}</h5>
+      <h4>{{availableBikes}}&nbsp;/&nbsp;{{bikeStands}}</h4>
+      Last Update: {{updatedTime}}
+    </gmap-info-window>
+    <gmap-marker
+      :key="index"
+      v-for="(m, index) in markers"
+      :position="m.position"
+      :clickable="true"
+      :label="m.stopid"
+      @click="toggleInfoWindow(m,index)"
+    >
+    </gmap-marker>
   </gmap-map>
 </template>
 
@@ -56,10 +55,9 @@
 
     methods: {
       fetchData () {
-        console.log('call fetchData()')
         return axios
           .get(
-            'https://api.jcdecaux.com/vls/v1/stations?contract=dublin&apiKey=eff457322380d25ccf635405ab615dd7df934db2'
+            'https://qlthh0d5p5.execute-api.us-east-1.amazonaws.com/service'
           )
           .then(function (res) {
             return res.data
@@ -67,7 +65,6 @@
       },
 
       toggleInfoWindow: function (marker, idx) {
-        console.log('call toggleInfoWindow()')
         this.infoWindowPos = marker.position
 
         this.stationName = marker.name
