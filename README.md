@@ -1,4 +1,4 @@
-# dublin-bus-map
+# commute-helper-dublin
 
 > A Vue.js project
 
