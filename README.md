@@ -1,4 +1,4 @@
-# commute-helper-dublin
+# bikes-in-dublin
 
 > A Vue.js project
 

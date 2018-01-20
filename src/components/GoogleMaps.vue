@@ -1,10 +1,10 @@
 <template>
   <div>
-    <h1>Dublin Bike Usage Info on Map</h1>
+    <h1>Bikes in Dublin</h1>
     <gmap-map style="width: 100%; height: 80%; position: absolute"
       :options="{styles: mapStyles}"
-      :center="{lat: 53.3498, lng: -6.2603}"
-      :zoom="15"
+      :center="currentLocation"
+      :zoom="16"
     >
       <gmap-info-window :options="infoOptions" :position="infoWindowPos" :opened="infoWinOpen" @closeclick="infoWinOpen=false">
         <h1>{{stationName}}</h1>
@@ -21,6 +21,12 @@
         @click="toggleInfoWindow(m,index)"
       >
       </gmap-marker>
+      <gmap-marker
+        :key="'current'"
+        :position="currentLocation"
+        :clickable="false"
+      >
+      </gmap-marker>
     </gmap-map>
   </div>
 </template>
@@ -31,6 +37,7 @@
   import * as VueGoogleMaps from 'vue2-google-maps'
   import VueAnalytics from 'vue-analytics'
   import axios from 'axios'
+  import gmapStyle from '../config/google-map-style'
 
   Vue.use(VueGoogleMaps, {
     load: {
@@ -46,191 +53,8 @@
     data () {
       return {
         markers: [],
-        mapStyles: [
-          {
-            'elementType': 'geometry',
-            'stylers': [
-              {
-                'color': '#242f3e'
-              }
-            ]
-          },
-          {
-            'elementType': 'labels',
-            'stylers': [
-              {
-                'visibility': 'off'
-              }
-            ]
-          },
-          {
-            'elementType': 'labels.text.fill',
-            'stylers': [
-              {
-                'color': '#746855'
-              }
-            ]
-          },
-          {
-            'elementType': 'labels.text.stroke',
-            'stylers': [
-              {
-                'color': '#242f3e'
-              }
-            ]
-          },
-          {
-            'featureType': 'administrative.land_parcel',
-            'stylers': [
-              {
-                'visibility': 'off'
-              }
-            ]
-          },
-          {
-            'featureType': 'administrative.locality',
-            'elementType': 'labels.text.fill',
-            'stylers': [
-              {
-                'color': '#d59563'
-              }
-            ]
-          },
-          {
-            'featureType': 'administrative.neighborhood',
-            'stylers': [
-              {
-                'visibility': 'off'
-              }
-            ]
-          },
-          {
-            'featureType': 'poi',
-            'elementType': 'labels.text.fill',
-            'stylers': [
-              {
-                'color': '#d59563'
-              }
-            ]
-          },
-          {
-            'featureType': 'poi.park',
-            'elementType': 'geometry',
-            'stylers': [
-              {
-                'color': '#263c3f'
-              }
-            ]
-          },
-          {
-            'featureType': 'poi.park',
-            'elementType': 'labels.text.fill',
-            'stylers': [
-              {
-                'color': '#6b9a76'
-              }
-            ]
-          },
-          {
-            'featureType': 'road',
-            'elementType': 'geometry',
-            'stylers': [
-              {
-                'color': '#38414e'
-              }
-            ]
-          },
-          {
-            'featureType': 'road',
-            'elementType': 'geometry.stroke',
-            'stylers': [
-              {
-                'color': '#212a37'
-              }
-            ]
-          },
-          {
-            'featureType': 'road',
-            'elementType': 'labels.text.fill',
-            'stylers': [
-              {
-                'color': '#9ca5b3'
-              }
-            ]
-          },
-          {
-            'featureType': 'road.highway',
-            'elementType': 'geometry',
-            'stylers': [
-              {
-                'color': '#746855'
-              }
-            ]
-          },
-          {
-            'featureType': 'road.highway',
-            'elementType': 'geometry.stroke',
-            'stylers': [
-              {
-                'color': '#1f2835'
-              }
-            ]
-          },
-          {
-            'featureType': 'road.highway',
-            'elementType': 'labels.text.fill',
-            'stylers': [
-              {
-                'color': '#f3d19c'
-              }
-            ]
-          },
-          {
-            'featureType': 'transit',
-            'elementType': 'geometry',
-            'stylers': [
-              {
-                'color': '#2f3948'
-              }
-            ]
-          },
-          {
-            'featureType': 'transit.station',
-            'elementType': 'labels.text.fill',
-            'stylers': [
-              {
-                'color': '#d59563'
-              }
-            ]
-          },
-          {
-            'featureType': 'water',
-            'elementType': 'geometry',
-            'stylers': [
-              {
-                'color': '#17263c'
-              }
-            ]
-          },
-          {
-            'featureType': 'water',
-            'elementType': 'labels.text.fill',
-            'stylers': [
-              {
-                'color': '#515c6d'
-              }
-            ]
-          },
-          {
-            'featureType': 'water',
-            'elementType': 'labels.text.stroke',
-            'stylers': [
-              {
-                'color': '#17263c'
-              }
-            ]
-          }
-        ],
+        mapStyles: gmapStyle,
+        currentLocation: {lat: 53.3498, lng: -6.2603},
         infoContent: '',
         stationName: '',
         label: '',
@@ -262,6 +86,15 @@
           })
       },
 
+      geolocation: function () {
+        navigator.geolocation.getCurrentPosition(position => {
+          this.currentLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          }
+        })
+      },
+
       toggleInfoWindow: function (marker, idx) {
         this.infoWindowPos = marker.position
 
@@ -283,6 +116,7 @@
 
     mounted () {
       this.$ga.page('/')
+      this.geolocation()
       this.fetchData().then(items => {
         items.forEach(item => {
           item.label = `${item.available_bikes}/${item.bike_stands}`
